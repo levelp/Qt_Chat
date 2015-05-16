@@ -105,19 +105,19 @@ void MainWindow::saveToLogFile(QString str) {
 }
 
 void MainWindow::read() {
-  // Массив для полученных данных
-  QByteArray data;
+  // Массив (буфер) для полученных данных
+  QByteArray buf;
   // Устанавливаем массиву размер
   // соответствующий размеру полученного пакета данных
-  data.resize(socket->pendingDatagramSize());
+  buf.resize(socket->pendingDatagramSize());
   QHostAddress* address = new QHostAddress();
-  socket->readDatagram(data.data(), data.size(), address);
+  socket->readDatagram(buf.data(), buf.size(), address);
   qDebug() << "Message from IP: " <<
            address->toString() << " size: "
-           << data.size();
+           << buf.size();
 
   // Разбор полученного пакета
-  QDataStream in(&data, QIODevice::ReadOnly);
+  QDataStream in(&buf, QIODevice::ReadOnly);
 
   // Получаем тип пакета
   qint8 type = 0;
