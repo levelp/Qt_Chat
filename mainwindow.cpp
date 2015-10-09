@@ -40,20 +40,21 @@ void MainWindow::UdpChat(QString nick, int port) {
     socket = NULL;
   }
 
-  // Создание чата
+  log(QString("Создание чата: port %1").arg(port));
   socket = new QUdpSocket(this);
   // QHostAddress("192.168.1.104") - конкретный IP, с которого можно подключиться
 
   // QHostAddress::Any - принимать
   //   сообщения со всех IP адресов
-  if(socket->bind(QHostAddress::Any, port)) {
+  if(socket->bind(QHostAddress::AnyIPv4, port)) {
     // При получении данных (сигнал readyRead)
-    // вызываем метод (слот) read, который
+    // вызываем метод (слот) read, который читает и обрабатывает сообщение
     connect(socket, SIGNAL(readyRead()), this, SLOT(read()));
   } else {
     // Какая-то программа на этом компьютере уже
     // заняла порт port
     qDebug() << "Port " << port << " in use. Change port!";
+    log(QString("Port %1 in use. Change port!").arg(port));
     return;
   }
 
@@ -75,7 +76,10 @@ void MainWindow::on_enterChatButton_clicked() {
 
 /// Отправка сообщения в сеть
 ///-->
-void MainWindow::send(QString str, qint8 type) {
+void MainWindow::send(QString str, MessageType type) {
+  if(type == USUAL_MESSAGE)
+    log(QString("send: %1 %2").arg(str).arg(type));
+
   // Полный пакет данных будет в массиве data
   QByteArray data; // Массив данных для отправки
 
@@ -105,55 +109,56 @@ void MainWindow::saveToLogFile(QString str) {
 }
 
 void MainWindow::read() {
-  // Массив (буфер) для полученных данных
-  QByteArray buf;
-  // Устанавливаем массиву размер
-  // соответствующий размеру полученного пакета данных
-  buf.resize(socket->pendingDatagramSize());
-  QHostAddress* address = new QHostAddress();
-  socket->readDatagram(buf.data(), buf.size(), address);
-  qDebug() << "Message from IP: " <<
-           address->toString() << " size: "
-           << buf.size();
+  while (socket->hasPendingDatagrams()) {
+    log("read>>");
+    // Массив (буфер) для полученных данных
+    QByteArray buf;
+    // Устанавливаем массиву размер
+    // соответствующий размеру полученного пакета данных
+    buf.resize(socket->pendingDatagramSize());
+    QHostAddress* address = new QHostAddress();
+    socket->readDatagram(buf.data(), buf.size(), address);
+    log(QString("Message from IP: %1 size: %2").arg(address->toString()).arg(buf.size()));
 
-  // Разбор полученного пакета
-  QDataStream in(&buf, QIODevice::ReadOnly);
+    // Разбор полученного пакета
+    QDataStream in(&buf, QIODevice::ReadOnly);
 
-  // Получаем тип пакета
-  qint8 type = 0;
-  in >> type;
+    // Получаем тип пакета
+    qint8 type = 0;
+    in >> type;
 
-  if (type == USUAL_MESSAGE) {
     QString str;
     in >> str;
+    log(QString("read>> %1 %2").arg(str).arg(type));
 
     if(str.length() == 0)
       return;
 
-    // Записываем входящие сообщения в файл
-    saveToLogFile(str);
+    if (type == USUAL_MESSAGE) {
+      // Записываем входящие сообщения в файл
+      saveToLogFile(str);
 
-    // Отображаем строчку в интерфейсе
-    ui->plainTextEdit->appendPlainText(str);
-  } else if (type == PERSON_ONLINE) {
-    // Добавление пользователя с считанным QHostAddress
-    QString str;
-    in >> str;
-    QStringList list = str.split(" ");
-    QString timeStr = list.at(0);
-    // Время выделили, дальше вырезаем
-    // из строки ник.
-    // Ищем в списке, если есть => обновляем
-    // Если нет, добавляем.
-    QString nick = str.right(timeStr.length());
+      // Отображаем строчку в интерфейсе
+      ui->plainTextEdit->appendPlainText(str);
+    } else if (type == PERSON_ONLINE) {
+      // Добавление пользователя с считанным QHostAddress
+      QStringList list = str.split(" ");
+      QString timeStr = list.at(0);
+      // Время выделили, дальше вырезаем
+      // из строки ник.
+      // Ищем в списке, если есть => обновляем
+      // Если нет, добавляем.
+      QString nick = str.right(timeStr.length());
 
-    ui->onlineList->addItem(str);
-  } else if (type == WHO_IS_ONLINE) {
-    QTime now = QTime::currentTime();
-    QString nowStr = now.toString("hh:mm:ss");
-    send(nowStr + " " +
-         ui->nicknameEdit->text(),
-         qint8(PERSON_ONLINE));
+      ui->onlineList->addItem(str);
+    } else if (type == WHO_IS_ONLINE) {
+      log(QString("Отвечаем своим ником: %1").arg(ui->nicknameEdit->text()));
+      QTime now = QTime::currentTime();
+      QString nowStr = now.toString("hh:mm:ss");
+      send(nowStr + " " +
+           ui->nicknameEdit->text(),
+           PERSON_ONLINE);
+    }
   }
 }
 ///<--
@@ -191,13 +196,18 @@ void MainWindow::refreshOnlineList() {
     QTime now = QTime::currentTime();
     int diff = time.msecsTo(now);
 
-    qDebug() << time << now << diff;
+    //log(QString("%1 %2 %3").arg(dateStr).arg(now).arg(diff));
 
     // Удаляем запись из списка
     if(diff > 2000)
       ui->onlineList->takeItem(i);
   }
 
-  send("", WHO_IS_ONLINE);
+  send("Who is online?", WHO_IS_ONLINE);
 }
 ///<--
+
+// Запись в log-окно
+void MainWindow::log(QString s) {
+  ui->log->append(s);
+}

@@ -48,7 +48,10 @@ class MainWindow : public QMainWindow {
   void UdpChat(QString nick, int port);
 
   // Отправить сообщение
-  void send(QString str, qint8 type);
+  void send(QString str, MessageType type);
+
+  // Вывод в отладочную консоль
+  void log(QString s);
 
  private slots:
   // Получаем сообщения

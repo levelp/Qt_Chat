@@ -6,19 +6,39 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>552</width>
-    <height>349</height>
+    <width>847</width>
+    <height>512</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Verdana</family>
+   </font>
   </property>
   <property name="windowTitle">
    <string>QtNetwork Demo - UDP чат</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>10</number>
+      </property>
+      <property name="leftMargin">
+       <number>5</number>
+      </property>
+      <property name="topMargin">
+       <number>5</number>
+      </property>
+      <property name="rightMargin">
+       <number>5</number>
+      </property>
+      <property name="bottomMargin">
+       <number>5</number>
+      </property>
       <item>
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="nickLabel">
         <property name="font">
          <font>
           <family>Verdana</family>
@@ -32,13 +52,23 @@
       </item>
       <item>
        <widget class="QLineEdit" name="nicknameEdit">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>Без имени</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_2">
+       <widget class="QLabel" name="portLabel">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string> Порт:</string>
         </property>
@@ -46,6 +76,18 @@
       </item>
       <item>
        <widget class="QLineEdit" name="portNumEdit">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Verdana</family>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>82</string>
         </property>
@@ -53,6 +95,12 @@
       </item>
       <item>
        <widget class="QPushButton" name="enterChatButton">
+        <property name="font">
+         <font>
+          <family>Verdana</family>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>В чат!</string>
         </property>
@@ -61,47 +109,66 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QPlainTextEdit" name="plainTextEdit"/>
-      </item>
-      <item>
-       <widget class="QListWidget" name="onlineList">
-        <property name="maximumSize">
-         <size>
-          <width>200</width>
-          <height>10000</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="centralPart"/>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="sendMessage">
-      <item>
-       <widget class="QLineEdit" name="messageEdit">
-        <property name="styleSheet">
-         <string notr="true">.messageEdit {
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QWidget" name="">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QSplitter" name="vSplitter">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QPlainTextEdit" name="plainTextEdit"/>
+          <widget class="QListWidget" name="onlineList">
+           <property name="maximumSize">
+            <size>
+             <width>200</width>
+             <height>10000</height>
+            </size>
+           </property>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="sendMessage">
+          <item>
+           <widget class="QLineEdit" name="messageEdit">
+            <property name="font">
+             <font>
+              <family>Verdana</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">.messageEdit {
   color: #FF0202;
 }</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="sendButton">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Отправить!</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="sendButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Отправить!</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QTextBrowser" name="log"/>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -110,8 +177,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>552</width>
-     <height>21</height>
+     <width>847</width>
+     <height>20</height>
     </rect>
    </property>
   </widget>
@@ -123,7 +190,6 @@
     <bool>false</bool>
    </attribute>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
