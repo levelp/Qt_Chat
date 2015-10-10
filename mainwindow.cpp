@@ -34,11 +34,11 @@ void MainWindow::UdpChat(QString nick, int port) {
 
   log(QString("Создание чата: port %1").arg(port));
   socket = new QUdpSocket(this);
-  // QHostAddress("192.168.1.104") - конкретный IP, с которого можно подключиться
+  QHostAddress address = QHostAddress("192.168.2.5"); // - конкретный IP, с которого можно подключиться
 
   // QHostAddress::Any - принимать
   //   сообщения со всех IP адресов
-  if(socket->bind(QHostAddress::AnyIPv4, port)) {
+  if(socket->bind(address/*QHostAddress::AnyIPv4*/, port)) {
     // При получении данных (сигнал readyRead)
     // вызываем метод (слот) read, который читает и обрабатывает сообщение
     connect(socket, SIGNAL(readyRead()), this, SLOT(read()));
