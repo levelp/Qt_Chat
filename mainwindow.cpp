@@ -12,17 +12,9 @@ MainWindow::MainWindow(QWidget* parent) :
 
   socket = NULL;
 
-  on_enterChatButton_clicked();
+  //on_enterChatButton_clicked();
 
-  // Таймер опроса "кто онлайн"
-  ///-->
-  QTimer* timer = new QTimer(this);
-  // Соединяем сигнал со слотом
-  connect(timer,
-          SIGNAL(timeout()),
-          this,
-          SLOT(refreshOnlineList()));
-  timer->start(1000);
+
   ///<--
 }
 
@@ -59,6 +51,25 @@ void MainWindow::UdpChat(QString nick, int port) {
   }
 
   send(nick + " - в чате", USUAL_MESSAGE);
+  log(QString("Отвечаем своим ником: %1").arg(ui->nicknameEdit->text()));
+  QTime now = QTime::currentTime();
+  QString nowStr = now.toString("hh:mm:ss");
+  QString str = nowStr + " " +
+          ui->nicknameEdit->text();
+  send(str,
+       PERSON_ONLINE);
+
+  //ui->onlineList->addItem(str);
+
+  // Таймер опроса "кто онлайн"
+  ///-->
+  QTimer* timer = new QTimer(this);
+  // Соединяем сигнал со слотом
+  connect(timer,
+          SIGNAL(timeout()),
+          this,
+          SLOT(refreshOnlineList()));
+  timer->start(15000);
 }
 ///<--
 
@@ -70,6 +81,7 @@ void MainWindow::on_enterChatButton_clicked() {
           ui->portNumEdit->text().toInt());
   // Разрешаем отправлять сообщения только когда уже в чате
   ui->sendButton->setEnabled(true);
+  ui->nicknameEdit->setEnabled(false);
 }
 ///<--
 
@@ -93,6 +105,7 @@ void MainWindow::send(QString str, MessageType type) {
   socket->writeDatagram(data,
                         QHostAddress::Broadcast,
                         ui->portNumEdit->text().toInt() );
+
 }
 ///<--
 
@@ -142,15 +155,34 @@ void MainWindow::read() {
       ui->plainTextEdit->appendPlainText(str);
     } else if (type == PERSON_ONLINE) {
       // Добавление пользователя с считанным QHostAddress
-      QStringList list = str.split(" ");
-      QString timeStr = list.at(0);
+      //QStringList list = str.split(" ");
+      //QString timeStr = list.at(0);
       // Время выделили, дальше вырезаем
       // из строки ник.
       // Ищем в списке, если есть => обновляем
       // Если нет, добавляем.
-      QString nick = str.right(timeStr.length());
+      //QString nick = str.right(timeStr.length());
+//      if(ui->onlineList->count())
+//      {
+//          for(int i = 0; i < ui->onlineList->count();i++)
+//          {
 
-      ui->onlineList->addItem(str);
+//              QListWidgetItem* item = ui->onlineList->item(i);
+//              //
+//              QString lstStr = item->text();
+//              QStringList lstList = lstStr.split(" ");
+//              QString dateStr = lstList.at(0);
+
+//              QString nickLst = lstStr.right(dateStr.length());
+
+//              if(nickLst != nick)
+//                ui->onlineList->addItem(str);
+//          }
+//      }
+//      else
+//      {
+        ui->onlineList->addItem(str);
+//      }
     } else if (type == WHO_IS_ONLINE) {
       log(QString("Отвечаем своим ником: %1").arg(ui->nicknameEdit->text()));
       QTime now = QTime::currentTime();
@@ -172,6 +204,12 @@ void MainWindow::on_sendButton_clicked() {
        USUAL_MESSAGE);
 
   ui->messageEdit->clear();
+  QTime now = QTime::currentTime();
+  QString nowStr = now.toString("hh:mm:ss");
+  send(nowStr + " " +
+       ui->nicknameEdit->text(),
+       PERSON_ONLINE);
+
 }
 ///<--
 
@@ -192,18 +230,27 @@ void MainWindow::refreshOnlineList() {
     QString str = item->text();
     QStringList list = str.split(" ");
     QString dateStr = list.at(0);
+
+    //QString nickLst = str.right(dateStr.length());
+
     QTime time = QTime::fromString(dateStr, "hh:mm:ss");
     QTime now = QTime::currentTime();
     int diff = time.msecsTo(now);
 
     //log(QString("%1 %2 %3").arg(dateStr).arg(now).arg(diff));
 
+    //QString nick = ui->nicknameEdit->text();
+
+    //log(QString("nicks%1%2").arg(nickLst).arg(nick));
     // Удаляем запись из списка
-    if(diff > 2000)
-      ui->onlineList->takeItem(i);
+    if(diff > 10000){
+      //if(nickLst != nick){
+          ui->onlineList->takeItem(i);
+      //}
+    }
   }
 
-  send("Who is online?", WHO_IS_ONLINE);
+  //send("Who is online?", WHO_IS_ONLINE);
 }
 ///<--
 
