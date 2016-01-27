@@ -12,9 +12,7 @@ MainWindow::MainWindow(QWidget* parent) :
 
   socket = NULL;
 
-  //on_enterChatButton_clicked();
-
-
+  on_enterChatButton_clicked();
   ///<--
 }
 
@@ -33,12 +31,21 @@ void MainWindow::UdpChat(QString nick, int port) {
   }
 
   log(QString("Создание чата: port %1").arg(port));
+  // UDP - обмен сообщениями внутри локальной сети
+  // TCP/IP
+  // 1. Создаём класс для работы с сетью
   socket = new QUdpSocket(this);
+
   QHostAddress address = QHostAddress("192.168.2.5"); // - конкретный IP, с которого можно подключиться
 
   // QHostAddress::Any - принимать
   //   сообщения со всех IP адресов
-  if(socket->bind(address/*QHostAddress::AnyIPv4*/, port)) {
+  // Занимаем определённый порт
+  // Теперь все входящие на этот порт будут
+  // поступать в нашу программу
+  if(socket->bind(QHostAddress::Any,
+                  //address/*QHostAddress::AnyIPv4*/,
+                  port)) {
     // При получении данных (сигнал readyRead)
     // вызываем метод (слот) read, который читает и обрабатывает сообщение
     connect(socket, SIGNAL(readyRead()), this, SLOT(read()));
@@ -55,7 +62,7 @@ void MainWindow::UdpChat(QString nick, int port) {
   QTime now = QTime::currentTime();
   QString nowStr = now.toString("hh:mm:ss");
   QString str = nowStr + " " +
-          ui->nicknameEdit->text();
+                ui->nicknameEdit->text();
   send(str,
        PERSON_ONLINE);
 
@@ -103,6 +110,7 @@ void MainWindow::send(QString str, MessageType type) {
   // Отправляем полученный массив данных всем в локальный сети
   // на порт указанный в интерфейсе
   socket->writeDatagram(data,
+                        //QHostAddress("192.168.1.1"),
                         QHostAddress::Broadcast,
                         ui->portNumEdit->text().toInt() );
 
@@ -130,7 +138,10 @@ void MainWindow::read() {
     // соответствующий размеру полученного пакета данных
     buf.resize(socket->pendingDatagramSize());
     QHostAddress* address = new QHostAddress();
+
+    // Принимаем данные пришедшие по сети
     socket->readDatagram(buf.data(), buf.size(), address);
+
     log(QString("Message from IP: %1 size: %2").arg(address->toString()).arg(buf.size()));
 
     // Разбор полученного пакета
@@ -162,27 +173,27 @@ void MainWindow::read() {
       // Ищем в списке, если есть => обновляем
       // Если нет, добавляем.
       //QString nick = str.right(timeStr.length());
-//      if(ui->onlineList->count())
-//      {
-//          for(int i = 0; i < ui->onlineList->count();i++)
-//          {
+      //      if(ui->onlineList->count())
+      //      {
+      //          for(int i = 0; i < ui->onlineList->count();i++)
+      //          {
 
-//              QListWidgetItem* item = ui->onlineList->item(i);
-//              //
-//              QString lstStr = item->text();
-//              QStringList lstList = lstStr.split(" ");
-//              QString dateStr = lstList.at(0);
+      //              QListWidgetItem* item = ui->onlineList->item(i);
+      //              //
+      //              QString lstStr = item->text();
+      //              QStringList lstList = lstStr.split(" ");
+      //              QString dateStr = lstList.at(0);
 
-//              QString nickLst = lstStr.right(dateStr.length());
+      //              QString nickLst = lstStr.right(dateStr.length());
 
-//              if(nickLst != nick)
-//                ui->onlineList->addItem(str);
-//          }
-//      }
-//      else
-//      {
-        ui->onlineList->addItem(str);
-//      }
+      //              if(nickLst != nick)
+      //                ui->onlineList->addItem(str);
+      //          }
+      //      }
+      //      else
+      //      {
+      ui->onlineList->addItem(str);
+      //      }
     } else if (type == WHO_IS_ONLINE) {
       log(QString("Отвечаем своим ником: %1").arg(ui->nicknameEdit->text()));
       QTime now = QTime::currentTime();
@@ -243,9 +254,9 @@ void MainWindow::refreshOnlineList() {
 
     //log(QString("nicks%1%2").arg(nickLst).arg(nick));
     // Удаляем запись из списка
-    if(diff > 10000){
+    if(diff > 10000) {
       //if(nickLst != nick){
-          ui->onlineList->takeItem(i);
+      ui->onlineList->takeItem(i);
       //}
     }
   }
